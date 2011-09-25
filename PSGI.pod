@@ -86,7 +86,7 @@ I<Разработчики веб-приложений> - это разрабо�
 =head2 Приложение
 
 Приложение PSGI - это Perl code reference. Оно принимает ровно один аргумент,
-среду выполнения, и возвращает ссылку на массив, содержащий ровно три
+окружение, и возвращает ссылку на массив, содержащий ровно три
 значения.
 
   my $app = sub {
@@ -98,17 +98,17 @@ I<Разработчики веб-приложений> - это разрабо�
       ];
   };
 
-=head3 Среда выполнения
+=head3 Окружение
 
-Среда выполнения B<ДОЛЖНА> быть ссылкой на хеш, включащий в себя CGI-подобные
-заголовки, как описано ниже. Приложение может свободно изменять среду. Среда
-B<ДОЛЖНА> содержать эти переменные (заимствовано из L<PEP
-333|http://www.python.org/dev/peps/pep-0333/>,
+Окружение B<ДОЛЖНО> быть ссылкой на хеш, включащей в себя CGI-подобные
+заголовки, как описано ниже. Приложение может свободно изменять окружение.
+Окружение B<ДОЛЖНО> содержать эти переменные (заимствовано из
+L<PEP 333|http://www.python.org/dev/peps/pep-0333/>,
 L<Rack|http://rack.rubyforge.org/doc/files/SPEC.html> и
 L<JSGI|http://jackjs.org/jsgi-spec.html>), за исключением тех случаев, когда
 они, как правило, пусты.
 
-Если переменная среды является логической переменной, её значение B<ОБЯЗАНО>
+Если переменная окружения является логической переменной, её значение B<ОБЯЗАНО>
 соответствовать нотации Perl для булевых чисел. Это означает, что пустая
 строка или явно указанный C<0> являются правильными false значениями. Если
 булевый ключ отсутствует, приложение B<МОЖЕТ> интерпретировать его как false
@@ -137,146 +137,148 @@ C<SCRIPT_NAME>: Начальная часть I<пути> URL запроса, с
 
 =item *
 
-C<PATH_INFO>: The remainder of the request URL's I<path>, designating
-the virtual "location" of the request's target within the
-application. This may be an empty string if the request URL targets
-the application root and does not have a trailing slash. This value
-should be URI decoded by servers in order to be compatible with L<RFC 3875|http://www.ietf.org/rfc/rfc3875>.
+C<PATH_INFO>: Остаточная часть I<пути> URL запроса, определяющая виртуальное
+"расположение" цели запроса внутри приложения. Может быть пустой строкой, если
+запрашиваемый URL указывает на корень приложения и не имеет завершающего
+слэша. Это значение должно быть URI-декодировано серверами для того, чтобы
+быть совместимым с L<RFC 3875|http://www.ietf.org/rfc/rfc3875>.
 
-If this key is not empty, it B<MUST> start with a forward slash (C</>).
-
-=item *
-
-C<REQUEST_URI>: The undecoded, raw request URL line. It is the raw URI
-path and query part that appears in the HTTP C<GET /... HTTP/1.x> line
-and doesn't contain URI scheme and host names.
-
-Unlike C<PATH_INFO>, this value B<SHOULD NOT> be decoded by servers. It is an
-application's responsibility to properly decode paths in order to map URLs to
-application handlers if they choose to use this key instead of C<PATH_INFO>.
+Если эта переменная не пуста, она B<ДОЛЖНА> начинаться с прямого слэша (C</>).
 
 =item *
 
-C<QUERY_STRING>: The portion of the request URL that follows the C<?>,
-if any. This key B<MAY> be empty, but B<MUST> always be present, even if empty.
+C<REQUEST_URI>: Не декодированная, необработанная строка URL. Это
+необработанный путь URI и часть запроса, которые фигурируют в HTTP C<GET /...
+HTTP/1.x> строке и не содержат схемы URI и имён хоста.
+
+В отличие от C<PATH_INFO>, это значение B<НЕ ДОЛЖНО> декодироваться сервером.
+Это ответственность приложения - правильно декодировать пути для того,
+чтобы отображать URL-ы на обработчики приложения, если оно предпочитает
+использовать эту переменную окружения вместо C<PATH_INFO>.
 
 =item *
 
-C<SERVER_NAME>, C<SERVER_PORT>: When combined with C<SCRIPT_NAME> and
-C<PATH_INFO>, these keys can be used to complete the URL. Note,
-however, that C<HTTP_HOST>, if present, should be used in preference
-to C<SERVER_NAME> for reconstructing the request URL. C<SERVER_NAME>
-and C<SERVER_PORT> B<MUST NOT> be empty strings, and are always
-required.
+C<QUERY_STRING>: Порция запрашиваемого URL, которая следует за C<?>, если
+таковая имеется. Эта переменная B<МОЖЕТ> быть пустой, но B<ДОЛЖНА> всегда
+присутствовать, даже если она пуста.
 
 =item *
 
-C<SERVER_PROTOCOL>: The version of the protocol the client used to
-send the request. Typically this will be something like "HTTP/1.0" or
-"HTTP/1.1" and may be used by the application to determine how to
-treat any HTTP request headers.
+C<SERVER_NAME>, C<SERVER_PORT>: При комбинации со C<SCRIPT_NAME> и
+C<PATH_INFO>, эти переменные окружения могут быть использованы для завершения
+URL. Обратите внимание, тем не менее, что C<HTTP_HOST>, если он присутствует,
+предпочтительнее использовать, чем C<SERVER_NAME>, для реконструкции
+запрашиваемого URL. C<SERVER_NAME> и C<SERVER_PORT> B<НЕ ДОЛЖНЫ> быть пустыми
+строками, и всегда должны присутствовать.
 
 =item *
 
-C<CONTENT_LENGTH>: The length of the content in bytes, as an
-integer. The presence or absence of this key should correspond to the
-presence or absence of HTTP Content-Length header in the request.
+C<SERVER_PROTOCOL>: Версия протокола, используемого клиентом для отправки
+запроса. Как правило это будет что-то типа "HTTP/1.0" или "HTTP/1.1" и может
+использоваться приложением для определения того, как трактовать заголовки
+запроса HTTP.
 
 =item *
 
-C<CONTENT_TYPE>: The request's MIME type, as specified by the client.
-The presence or absence of this key should correspond to the presence
-or absence of HTTP Content-Type header in the request.
+C<CONTENT_LENGTH>: Длина содержимого в байтах, в виде целого числа.
+Присутствие или отсутствие этой переменной окружения должно соответствовать
+присутствию или отсутствию HTTP заголовка Content-Length в запросе.
 
 =item *
 
-C<HTTP_*> Keys: These keys correspond to the client-supplied
-HTTP request headers. The presence or absence of these keys should
-correspond to the presence or absence of the appropriate HTTP header
-in the request.
+C<CONTENT_TYPE>: MIME-тип запроса, в том виде, в каком он указан клиентом.
+Присутствие или отсутствие этой переменной окружения должно соответствовать
+присутствию или отсутствию HTTP заголовка Content-Type в запросе.
 
-The key is obtained converting the HTTP header field name to upper
-case, replacing all occurrences of hyphens C<-> with
-underscores C<_> and prepending C<HTTP_>, as in
-L<RFC 3875|http://www.ietf.org/rfc/rfc3875>.
+=item *
 
-If there are multiple header lines sent with the same key, the server
-should treat them as if they were sent in one line and combine them
-with C<, >, as in L<RFC 2616|http://www.ietf.org/rfc/rfc2616>.
+Переменные C<HTTP_*> : Эти переменные окружения соответствуют предоставленным
+клиентом заголовкам HTTP запроса. Присутствие или отсутствие этих ключей
+должно соответствовать присутствию или отсутствию соответствующих заголовков
+HTTP в запросе.
+
+Переменная окружения получается путём конвертации имени поля заголовка HTTP в
+верхний регистр, замещения всех дефисов C<-> на подчёркивания C<_> и
+подстановки приставки C<HTTP>, как в L<RFC 3875|http://www.ietf.org/rfc/rfc3875>.
+
+Если есть несколько строк заголовка, отправленных с одним ключём (именем
+переменной), серверу следует рассматривать их как будто они были посланы в
+одной строке и объединять их при помощи C<, >, как в L<RFC 2616|http://www.ietf.org/rfc/rfc2616>.
 
 =back
 
-In addition to the keys above, the PSGI environment B<MUST> also include these
-PSGI-specific keys:
+В добавление к ключам, описанным выше, окружение PSGI B<ДОЛЖНО> также включать
+эти специфичные для PSGI ключи:
 
 =over 4
 
 =item *
 
-C<psgi.version>: An array reference [1,1] representing this version of
-PSGI. The first number is the major version and the second it the minor
-version.
+C<psgi.version>: Ссылка на массив [1,1], представляющий используемую версию
+PSGI. Первое число - мажорная версия, второе - минорная версия.
 
 =item *
 
-C<psgi.url_scheme>: A string C<http> or C<https>, depending on the request URL.
+C<psgi.url_scheme>: Строка C<http> или C<https>, зависящая от URL запроса.
 
 =item *
 
-C<psgi.input>: the input stream. See below for details.
+C<psgi.input>: входной поток. Подробности см. ниже.
 
 =item *
 
-C<psgi.errors>: the error stream. See below for details.
+C<psgi.errors>: поток ошибок. Подробности см. ниже.
 
 =item *
 
-C<psgi.multithread>: This is a boolean value, which B<MUST> be true if the
-application may be simultaneously invoked by another thread in the same
-process, false otherwise.
+C<psgi.multithread>: Это булево значение, которое B<ДОЛЖНО> быть true, если
+приложение может быть одновременно вызвано другой нитью того же процесса,
+иначе false.
 
 =item *
 
-C<psgi.multiprocess>: This is a boolean value, which B<MUST> be true if an
-equivalent application object may be simultaneously invoked by another
-process, false otherwise.
+C<psgi.multiprocess>: Это булево значение, которое B<ДОЛЖНО> быть true, если
+эквивалентный объект приложения может быть одновременно вызван другим
+процессом, иначе false.
 
 =item *
 
-C<psgi.run_once>: A boolean which is true if the server expects (but does not
-guarantee!)  that the application will only be invoked this one time during
-the life of its containing process. Normally, this will only be true for a
-server based on CGI (or something similar).
+C<psgi.run_once>: Булево значение, содержащее true, если сервер ожидает (но не
+гарантирует!), что приложение будет вызвано только в этот единственный раз за
+время жизни содержащего его процесса. Обычно это бывает верно только для
+сервера, основанного на CGI (или на чём-то похожем).
+
 
 =item *
 
-C<psgi.nonblocking>: A boolean which is true if the server is calling the
-application in an non-blocking event loop.
+C<psgi.nonblocking>: Булево значение, содержащее true, если сервер вызывает
+приложение в неблокирующем событийном цикле.
 
 =item *
 
-C<psgi.streaming>: A boolean which is true if the server supports callback
-style delayed response and streaming writer object.
+C<psgi.streaming>: Булево значение, равное true, если сервер ожидает
+отложенного ответа в стиле callback и потокового пишущего объекта.
 
 =back
 
-The server or the application can store its own data in the
-environment as well. These keys B<MUST> contain at least one dot, and
-B<SHOULD> be prefixed uniquely.
+Сервер или приложение может также сохранять свои данные в переменных
+окружения. Эти переменные B<ДОЛЖНЫ> содержать по меньшей мере одну точку, и их
+B<СЛЕДУЕТ> называть начиная с уникальной приставки.
 
-The C<psgi.> prefix is reserved for use with the PSGI core
-specification, and C<psgix.> prefix is reserved for officially blessed
-extensions. These prefixes B<MUST NOT> be used by other servers or
-application. See L<psgi-extensions|PSGI::Extentions> for the list of
-officially approved extentions.
+Приставка C<psgi.> зарезервирована для использования с основной спецификацией
+PSGI, а приставка C<psgix.> зарезервирована для официально благословлённых
+расширений. Эти приставки B<НЕ ДОЛЖНЫ> использоваться другими серверами или
+приложением. См. список официально одобренных расширений в
+L<psgi-extensions|PSGI::Extentions>.
 
-The environment B<MUST NOT> contain keys named C<HTTP_CONTENT_TYPE> or
+Окружение B<НЕ ДОЛЖНО> содержать ключи с именем C<HTTP_CONTENT_TYPE> или
 C<HTTP_CONTENT_LENGTH>.
 
-One of C<SCRIPT_NAME> or C<PATH_INFO> B<MUST> be set. When
-C<REQUEST_URI> is C</>, C<PATH_INFO> should be C</> and C<SCRIPT_NAME>
-should be empty. C<SCRIPT_NAME> B<MUST NOT> be C</>, but B<MAY> be
-empty.
+Одна из переменных C<SCRIPT_NAME> или C<PATH_INFO> B<ДОЛЖНА> быть установлена.
+Когда C<REQUEST_URI> - это C</>, переменной C<PATH_INFO> следует быть равной
+C</>, а переменной C<SCRIPT_NAME> следует быть пустой. Переменная
+C<SCRIPT_NAME> B<НЕ ДОЛЖНА> быть равной C</>, но B<МОЖЕТ> быть пустой.
+
 
 =head3 The Input Stream
 
