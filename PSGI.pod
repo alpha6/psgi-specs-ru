@@ -280,27 +280,27 @@ C</>, а переменной C<SCRIPT_NAME> следует быть пусто�
 C<SCRIPT_NAME> B<НЕ ДОЛЖНА> быть равной C</>, но B<МОЖЕТ> быть пустой.
 
 
-=head3 The Input Stream
+=head3 Входной поток
 
-The input stream in C<psgi.input> is an L<IO::Handle>-like object which
-streams the raw HTTP POST or PUT data. If it is a file handle then it
-B<MUST> be opened in binary mode. The input stream B<MUST> respond to
-C<read> and B<MAY> implement C<seek>.
+Входной поток в C<psgi.input> это объект, похожий на L<IO::Handle>, который
+содержит потоки необработанных данных HTTP POST или PUT запросов. Если это
+файловый дескриптор - он B<ДОЛЖЕН> быть открыть в бинарном режиме. Входной
+поток B<ДОЛЖЕН> отвечать на запрос C<read> и B<МОЖЕТ> реализовывать C<seek>.
 
-Perl's built-in filehandles or L<IO::Handle> based objects should work as-is
-in a PSGI server. Application developers B<SHOULD NOT> inspect the type or
-class of the stream. Instead, they B<SHOULD> simply call C<read> on the object.
+Встроенные в Perl файловые дескрипторы или объекты основанные на L<IO::Handle>
+должны работать "как есть" внутри PSGI сервера. Разработчикам прилижений 
+B<НЕ СЛЕДУЕТ> проверять тип или класс потока. Вместо этого им B<СЛЕДУЕТ> просто
+вызывать C<read> на объекте.
 
-Application developers B<SHOULD NOT> use Perl's built-in C<read> or iterator
-(C<< <$fh> >>) to read from the input stream. Instead, application
-developers should call C<read> as a method (C<< $fh->read >>) to allow for
-duck typing.
+Разработчикам приложений B<НЕ СЛЕДУЕТ> использовать встроенный в Perl C<read>
+или итератор (C<< <$fh> >>) для чтения входного потока. Взамен, разработчикам
+приложений следует вызывать C<read> как метод (C<< $fh->read >>) утиной типизации.
 
-Framework developers, if they know the input stream will be used with the
-built-in read() in any upstream code they can't touch, B<SHOULD> use PerlIO or
-a tied handle to work around with this problem.
+Разработчикам фреймворков, если они знают что входной поток будет использоваться
+со встроенным read() в любом верхнем коде который они не могут трогать, B<СЛЕДУЕТ>
+использовать PerlIO или связывать руки чтобы обойти эту проблему.
 
-The input stream objet is expected to provide a C<read> method:
+The input stream object is expected to provide a C<read> method:
 
 =over 4
 
